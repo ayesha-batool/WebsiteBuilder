@@ -1,0 +1,52 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap");
+@import "@daveyplate/better-auth-ui/css";
+* {
+  font-family: "Outfit", sans-serif;
+}
+
+@layer base{
+  button{
+    @apply cursor-pointer;
+  }
+}
+/* Account settings page: ensure all text is visible on dark background */
+.account-settings-page,
+.account-settings-page label,
+.account-settings-page input,
+.account-settings-page p,
+.account-settings-page [class*="description"],
+.account-settings-page [class*="message"] {
+  color: white;
+}
+.account-settings-page input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+.account-settings-page [class*="message"][class*="error"] {
+  color: rgb(252 165 165);
+}
+
+/* Profile dropdown: constrain height so it doesn't stretch the page or show black gap at bottom */
+[data-slot="dropdown-menu-content"] {
+  max-height: min(18rem, 70vh) !important;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.no-scrollbar::-webkit-scrollbar{
+  display: none;
+}
+.no-scrollbar{
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.animate-fade-in{
+  animation: fade-in 0.8s ease-out;
+}
+@keyframes fade-in{
+  from{
+    opacity: 0;
+  }
+  to{
+    opacity: 1;
+  }
+}
