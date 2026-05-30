@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "cd server && npm install && cd ../client && corepack enable && pnpm install",
-  "buildCommand": "cd server && npx prisma generate && npm run build && cd ../client && npm run build",
+  "installCommand": "cd server && npm install && cd ../client && npm install --legacy-peer-deps",
+  "buildCommand": "cd server && npx prisma generate && npm run build && cd ../client && npm install --legacy-peer-deps && npm run build",
   "outputDirectory": "client/dist",
   "framework": null,
   "rewrites": [
