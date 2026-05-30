@@ -13,8 +13,8 @@ interface Plan {
 
 
 const Pricing = () => {
-  const [plans, setPlans] = useState<Plan[]>(appPlans);
-  const handlePurchase = async (planId: string) => {
+  const [plans] = useState<Plan[]>(appPlans);
+  const handlePurchase = async (_planId: string) => {
 
   }
 

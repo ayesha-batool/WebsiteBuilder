@@ -1,7 +1,7 @@
 // controller function to make revision
 import { Request, Response } from "express";
 import prisma from "../lib/prisma.js";
-import openai from "../configs/openai.js";
+import openai, { AI_MAX_TOKENS, AI_MODEL } from "../configs/openai.js";
 
 function paramString(value: string | string[] | undefined): string | undefined {
     return typeof value === "string" ? value : value?.[0];
@@ -25,7 +25,7 @@ export const makeRevision = async (req: Request, res: Response) => {
             return res.status(401).json({ message: "Unauthorized" });
         }
         if (user.credits < 5) {
-            return res.status(401).json({ message: "Insufficient credits" });
+            return res.status(402).json({ message: "Insufficient credits. You need at least 5 credits to make a revision." });
         }
         if (!message || message.trim() === '') {
             return res.status(400).json({ message: "Message is required" });
@@ -50,8 +50,8 @@ export const makeRevision = async (req: Request, res: Response) => {
             data: { credits: { decrement: 5 } },
         });
         const revisionResponse = await openai.chat.completions.create({
-            model: "kwaipilot/kat-coder-pro",
-            max_tokens: 32768,
+            model: AI_MODEL,
+            max_tokens: AI_MAX_TOKENS,
             messages: [{ role: "system", content: `you are an expert web developer. You are given a project and a message. You need to make a revision to the project based on the message. Return ONLY the complete updated HTML code with the requested changes. Use Tailwind CSS for ALL styling (NO custom CSS). Use Tailwind utility classes for all styling changes. Include all JavaScript in <script> tags before closing </body>. Make sure it's a complete, standalone HTML document with Tailwind CSS. Return the HTML Code Only, nothing else. Apply the requested changes while maintaining the Tailwind CSS styling approach.` },
             { role: "user", content: message },
             ],
@@ -73,8 +73,8 @@ export const makeRevision = async (req: Request, res: Response) => {
             },
         });
         const codeGenerationResponse = await openai.chat.completions.create({
-            model: "kwaipilot/kat-coder-pro",
-            max_tokens: 32768,
+            model: AI_MODEL,
+            max_tokens: AI_MAX_TOKENS,
             messages: [{ role: "system", content: `you are an expert web developer. You are given a project and a message. You need to make a revision to the project based on the message. Return ONLY the complete updated HTML code with the requested changes. Use Tailwind CSS for ALL styling (NO custom CSS). Use Tailwind utility classes for all styling changes. Include all JavaScript in <script> tags before closing </body>. Make sure it's a complete, standalone HTML document with Tailwind CSS. Return the HTML Code Only, nothing else. Apply the requested changes while maintaining the Tailwind CSS styling approach.` },
             { role: "user", content: `Here is the current website code ${project.current_code}. The user has requested the following changes: ${revision}. Return ONLY the complete updated HTML code with the requested changes. Use Tailwind CSS for ALL styling (NO custom CSS). Use Tailwind utility classes for all styling changes. Include all JavaScript in <script> tags before closing </body>. Make sure it's a complete, standalone HTML document with Tailwind CSS. Return the HTML Code Only, nothing else. Apply the requested changes while maintaining the Tailwind CSS styling approach.` },
             ],
@@ -104,7 +104,7 @@ export const makeRevision = async (req: Request, res: Response) => {
         await prisma.conversation.create({
             data: {
                 role: "assistant",
-                content: `I've generated the new website code: ${code}. You can now preview it and request any changes.`,
+                content: `I've updated your website. You can preview it and request any changes.`,
                 projectId: projectId,
             },
         });

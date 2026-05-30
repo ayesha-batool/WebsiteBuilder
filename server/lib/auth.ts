@@ -3,7 +3,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import prisma from "./prisma.js";
 import "dotenv/config";
 
-const trustedOrigins = process.env.TRUSTED_ORIGINS?.split(',') || [];
+const trustedOrigins = process.env.TRUSTED_ORIGINS?.split(',').filter(Boolean) || ['http://localhost:5173'];
 
 export const auth = betterAuth({
     database: prismaAdapter(prisma, {

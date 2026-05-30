@@ -174,6 +174,28 @@ export const iframeScript = `
             }
 
             let selectedElement = null;
+            let previewMode = 'interact';
+            let clickHandler = null;
+
+            document.addEventListener('click', function (e) {
+            var anchor = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+            if (!anchor) return;
+            var href = anchor.getAttribute('href');
+            if (!href || href === '#' || href.charAt(0) === '#') return;
+            if (/^javascript:|^mailto:|^tel:/i.test(href)) return;
+            if (anchor.target === '_parent' || anchor.target === '_top') {
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
+            try {
+                var url = new URL(href, window.parent.location.href);
+                if (url.origin === window.parent.location.origin) {
+                e.preventDefault();
+                e.stopPropagation();
+                }
+            } catch (err) {}
+            }, true);
 
             function clearSelected() {
             if (selectedElement) {
@@ -184,7 +206,9 @@ export const iframeScript = `
             }
             }
 
-            document.addEventListener('click', function (e) {
+            function handleEditClick(e) {
+            if (previewMode !== 'edit') return;
+
             e.preventDefault();
             e.stopPropagation();
 
@@ -219,10 +243,27 @@ export const iframeScript = `
                 }
                 }
             }, '*');
-            });
+            }
+
+            function setPreviewMode(mode) {
+            previewMode = mode === 'edit' ? 'edit' : 'interact';
+            if (previewMode === 'edit') {
+                if (!clickHandler) {
+                clickHandler = handleEditClick;
+                document.addEventListener('click', clickHandler, true);
+                }
+            } else if (clickHandler) {
+                document.removeEventListener('click', clickHandler, true);
+                clickHandler = null;
+                clearSelected();
+                window.parent.postMessage({ type: 'CLEAR_SELECTION' }, '*');
+            }
+            }
 
             window.addEventListener('message', function (event) {
-            if (event.data.type === 'UPDATE_ELEMENT' && selectedElement) {
+            if (event.data.type === 'SET_PREVIEW_MODE') {
+                setPreviewMode(event.data.payload);
+            } else if (event.data.type === 'UPDATE_ELEMENT' && selectedElement) {
                 const updates = event.data.payload;
 
                 if (updates.className !== undefined) {

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import type { Version } from "../types";
 import { toast } from "sonner";
 import type { Project } from "../types";
 import { authClient } from "../lib/auth-client";
@@ -17,30 +16,35 @@ const Preview = () => {
 
   const fetchCode = async () => {
     try {
-      const { data } = await api.get(`/api/project/preview/${projectId}`);
-      setCode(data.project.current_code);
-      if (versionId) {
-        data.project.versions.forEach((version: Version) => {
-          if (version.id === versionId) {
-            setCode(version.code);
-          }
-        });
-      }
-      setLoading(false);
-    } catch (error: any) {
-      toast.error("Failed to fetch code", {
-        description: error?.message,
+      const { data } = await api.get(`/api/project/preview/${projectId}`, {
+        params: versionId ? { versionId } : undefined,
       });
+      setCode(data.code);
+      setLoading(false);
+    } catch (error: unknown) {
+      setLoading(false);
+      const message =
+        error && typeof error === "object" && "response" in error
+          ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
+          : error instanceof Error
+            ? error.message
+            : "Failed to fetch code";
+      toast.error("Failed to fetch preview", { description: message });
     }
-    console.log(code);
-  }
+  };
 
   useEffect(() => {
-    if (session?.user && !isPending) {
+    if (isPending) return;
+    if (!session?.user) {
+      setLoading(false);
+      toast.error("Please sign in to preview this project");
+      navigate("/auth/sign-in");
+      return;
+    }
+    if (projectId) {
       fetchCode();
     }
-
-  }, [session?.user]);
+  }, [session?.user, isPending, projectId, versionId]);
 
   if (loading) {
     return (

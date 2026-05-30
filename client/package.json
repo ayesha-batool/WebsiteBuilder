@@ -4,10 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "pnpm exec vite",
-    "build": "tsc -b && pnpm exec vite build",
-    "lint": "pnpm exec eslint .",
-    "preview": "pnpm exec vite preview"
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@daveyplate/better-auth-ui": "^3.3.15",

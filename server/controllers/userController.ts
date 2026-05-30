@@ -1,7 +1,7 @@
 // get user credits
 import { Request, Response } from "express";
 import prisma from "../lib/prisma.js";
-import openai from "../configs/openai.js";
+import openai, { AI_MAX_TOKENS, AI_MODEL } from "../configs/openai.js";
 
 function paramString(value: string | string[] | undefined): string | undefined {
     return typeof value === "string" ? value : value?.[0];
@@ -43,7 +43,7 @@ export const createNewProject = async (req: Request, res: Response) => {
             return res.status(401).json({ message: "Unauthorized" });
         }
         if (user.credits < 5) {
-            return res.status(401).json({ message: "Insufficient credits" });
+            return res.status(402).json({ message: "Insufficient credits. You need at least 5 credits to create a website." });
         }
         // create new project
         const newProject = await prisma.websiteProject.create({
@@ -73,7 +73,7 @@ export const createNewProject = async (req: Request, res: Response) => {
         let enhancedPrompt: string | null;
         try {
             const enhancedPromptResponse = await openai.chat.completions.create({
-                model: "kwaipilot/kat-coder-pro",
+                model: AI_MODEL,
                 max_tokens: 4096,
                 messages: [{
                     role: "system",
@@ -106,8 +106,8 @@ export const createNewProject = async (req: Request, res: Response) => {
         let code: string;
         try {
             const codeGenerationResponse = await openai.chat.completions.create({
-                model: "kwaipilot/kat-coder-pro",
-                max_tokens: 32768,
+                model: AI_MODEL,
+                max_tokens: AI_MAX_TOKENS,
                 messages: [
                     { role: "system", content: `You are an expert web developer. Create a complete, production-ready, single-page website based on this request: ${enhancedPrompt ?? ""} Critical requirements: - Return ONLY the complete HTML code. - Use Tailwind CSS for ALL styling (NO custom CSS). - Use Tailwind utility classes. - Include all JavaScript in <script> tags before closing </body>. - Complete standalone HTML document with Tailwind CSS. Return the HTML code only, nothing else.` },
                     { role: "user", content: enhancedPrompt ?? "" },

@@ -1,6 +1,6 @@
 import type { Message, Project, Version } from '../types'
 import { BotIcon, EyeIcon, Loader2Icon, SendIcon, UserIcon } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import api from '../configs/axios';
 import { toast } from 'sonner';
@@ -15,6 +15,7 @@ interface SidebarProps {
 
 
 const Sidebar = ({ isMenuOpen, project, setProject, isGenerating, setIsGenerating }: SidebarProps) => {
+  const navigate = useNavigate();
   const messageRef = useRef<HTMLDivElement>(null);
   const [input, setInput] = useState('');
 
@@ -53,9 +54,17 @@ const Sidebar = ({ isMenuOpen, project, setProject, isGenerating, setIsGeneratin
         ? (err as { response?: { status?: number } }).response?.status : undefined;
       const msg = err && typeof err === "object" && "response" in err
         && (err as { response?: { data?: { message?: string } } }).response?.data?.message;
-      const description = status === 401
-        ? "Session expired or not signed in. Please sign in again."
-        : (typeof msg === "string" ? msg : (err instanceof Error ? err.message : "Failed to make revision"));
+      let description = typeof msg === "string" ? msg : (err instanceof Error ? err.message : "Failed to make revision");
+      if (status === 402) {
+        description = typeof msg === "string" ? msg : "You need at least 5 credits for a revision.";
+        toast.error("Not enough credits", { description, action: { label: "Get credits", onClick: () => navigate("/pricing") } });
+        return;
+      }
+      if (status === 401) {
+        description = "Session expired or not signed in. Please sign in again.";
+        toast.error("Failed to make revision", { action: { label: "Sign in", onClick: () => navigate("/auth/sign-in") }, description });
+        return;
+      }
       toast.error("Failed to make revision", { description });
     } finally {
       clearInterval(interval);
