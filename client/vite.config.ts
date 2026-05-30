@@ -12,5 +12,9 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
+    dedupe: ['react', 'react-dom', 'react-hook-form'],
+  },
+  optimizeDeps: {
+    include: ['react-hook-form', '@hookform/resolvers'],
   },
 })

@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "cd server && npm install && cd ../client && corepack enable && pnpm install --frozen-lockfile",
+  "installCommand": "cd server && npm install && cd ../client && corepack enable && pnpm install",
   "buildCommand": "cd server && npx prisma generate && npm run build && cd ../client && npm run build",
   "outputDirectory": "client/dist",
   "framework": null,
