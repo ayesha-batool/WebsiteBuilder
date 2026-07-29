@@ -25,3 +25,6 @@ pnpm-debug.log*
 
 # Prisma generated (regenerate with prisma generate)
 server/generated/
+
+# Vercel
+.vercel
