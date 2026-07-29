@@ -129,7 +129,11 @@ export const ProjectPreview = forwardRef<ProjectPreviewRef, ProjectPreviewProps>
             const iframe = iframeRef.current
             if (!iframe || !project.current_code) return
 
+            // Blob URL so relative/module scripts in generated HTML do not resolve
+            // against the app origin (which would return index.html as text/html).
             const html = injectPreview(project.current_code)
+            const blob = new Blob([html], { type: 'text/html' })
+            const blobUrl = URL.createObjectURL(blob)
             let removeNavGuard: (() => void) | undefined
 
             const loadPreview = () => {
@@ -140,20 +144,17 @@ export const ProjectPreview = forwardRef<ProjectPreviewRef, ProjectPreviewProps>
                 sendPreviewMode(previewMode)
             }
 
-            const doc = iframe.contentDocument
-            if (doc) {
-                doc.open()
-                doc.write(html)
-                doc.close()
-                loadPreview()
-            }
-
             const onLoad = () => loadPreview()
             iframe.addEventListener('load', onLoad)
+            iframe.src = blobUrl
 
             return () => {
                 iframe.removeEventListener('load', onLoad)
                 removeNavGuard?.()
+                URL.revokeObjectURL(blobUrl)
+                if (iframe.src === blobUrl) {
+                    iframe.removeAttribute('src')
+                }
             }
         }, [project.current_code, injectPreview, attachNavGuard, sendPreviewMode, previewMode])
 
